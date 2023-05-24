@@ -27,11 +27,17 @@ public class UserDao {
 
     public User create(User user) {
         try (Connection conn = DbUtil.connectWorkshop()) {
-            PreparedStatement statement = conn.prepareStatement(CREATE_USER_QUERY);
+            PreparedStatement statement = conn.prepareStatement(CREATE_USER_QUERY, PreparedStatement.RETURN_GENERATED_KEYS);
             statement.setString(1, user.getUserName());
             statement.setString(2, user.getEmail());
             statement.setString(3, hashPassword(user.getPassword()));
             statement.executeUpdate();
+
+            ResultSet rs = statement.getGeneratedKeys();
+            if(rs.next()){
+                long id = rs.getLong(1);
+                System.out.println("Inserted ID: " + id);
+            }
 
             return user;
         } catch (SQLException e) {
@@ -41,12 +47,53 @@ public class UserDao {
 
     }
 
-    public void delete(int id) {
+    public User read(int userId) {
+        try (Connection conn = DbUtil.connectWorkshop()) {
+            PreparedStatement statement = conn.prepareStatement(SELECT_USER_QUERY);
+            statement.setInt(1, userId);
+
+            ResultSet rs = statement.executeQuery();
+
+            if (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt(1));
+                user.setUserName(rs.getString(3));
+                user.setEmail(rs.getString(2));
+                return user;
+            } else {
+                throw new NullPointerException("this id doesn't exist");
+            }
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    public void update(User user){
+        try(Connection conn = DbUtil.connectWorkshop()){
+            PreparedStatement statement = conn.prepareStatement(UPDATE_USER_QUERY);
+            statement.setString(1, user.getUserName());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPassword());
+            statement.setInt(4,user.getId());
+
+            statement.executeUpdate();
+
+
+        } catch (SQLException ex){
+            ex.printStackTrace();
+        }
+    }
+
+
+
+        public void delete(int userId) {
 
         try (Connection conn = DbUtil.connectWorkshop()) {
 
             PreparedStatement statement = conn.prepareStatement(DELETE_USER_QUERY);
-            statement.setInt(1, id);
+            statement.setInt(1, userId);
             statement.executeUpdate();
 
         } catch (SQLException ex) {
