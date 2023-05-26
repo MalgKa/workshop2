@@ -1,9 +1,11 @@
 package pl.coderslab.entity;
 
+import com.mysql.cj.protocol.Resultset;
 import org.mindrot.jbcrypt.BCrypt;
 import pl.coderslab.DbUtil;
 
 import java.sql.*;
+import java.util.Arrays;
 
 public class UserDao {
     private static final String CREATE_USER_QUERY =
@@ -34,9 +36,8 @@ public class UserDao {
             statement.executeUpdate();
 
             ResultSet rs = statement.getGeneratedKeys();
-            if(rs.next()){
+            if (rs.next()) {
                 long id = rs.getLong(1);
-                System.out.println("Inserted ID: " + id);
             }
 
             return user;
@@ -70,25 +71,24 @@ public class UserDao {
         }
     }
 
-    public void update(User user){
-        try(Connection conn = DbUtil.connectWorkshop()){
+    public void update(User user) {
+        try (Connection conn = DbUtil.connectWorkshop()) {
             PreparedStatement statement = conn.prepareStatement(UPDATE_USER_QUERY);
             statement.setString(1, user.getUserName());
             statement.setString(2, user.getEmail());
-            statement.setString(3, user.getPassword());
-            statement.setInt(4,user.getId());
+            statement.setString(3, hashPassword(user.getPassword()));
+            statement.setInt(4, user.getId());
 
             statement.executeUpdate();
 
 
-        } catch (SQLException ex){
+        } catch (SQLException ex) {
             ex.printStackTrace();
         }
     }
 
 
-
-        public void delete(int userId) {
+    public void delete(int userId) {
 
         try (Connection conn = DbUtil.connectWorkshop()) {
 
@@ -101,5 +101,27 @@ public class UserDao {
 
         }
     }
+
+    public User[] findAll() {
+        try (Connection conn = DbUtil.connectWorkshop()) {
+            PreparedStatement statement = conn.prepareStatement(SELECT_ALL_USER_QUERY);
+            ResultSet rs = statement.executeQuery();
+            User[] usersTab = new User[0];
+            while (rs.next()) {
+                User tempUser = new User();
+                tempUser.setId(rs.getInt(1));
+                tempUser.setUserName(rs.getString(3));
+                tempUser.setEmail(rs.getString(2));
+                tempUser.setPassword(rs.getString(4));
+               usersTab = Arrays.copyOf(usersTab, usersTab.length+1);
+               usersTab[usersTab.length-1] = tempUser;
+            }
+            return usersTab;
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
 
 }
