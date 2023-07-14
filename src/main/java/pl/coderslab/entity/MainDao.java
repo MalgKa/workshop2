@@ -1,7 +1,5 @@
 package pl.coderslab.entity;
 
-import java.util.Arrays;
-
 public class MainDao {
     public static void main(String[] args) {
 
@@ -35,6 +33,8 @@ public class MainDao {
         for (User person : findAllUsers) {
             System.out.println(person);
         }
+
+        System.out.println(user3.getId());
 
     }
 }

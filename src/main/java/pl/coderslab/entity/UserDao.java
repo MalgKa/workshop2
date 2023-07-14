@@ -1,6 +1,6 @@
 package pl.coderslab.entity;
 
-import com.mysql.cj.protocol.Resultset;
+
 import org.mindrot.jbcrypt.BCrypt;
 import pl.coderslab.DbUtil;
 
@@ -37,7 +37,7 @@ public class UserDao {
 
             ResultSet rs = statement.getGeneratedKeys();
             if (rs.next()) {
-                long id = rs.getLong(1);
+                user.setId(rs.getInt(1));
             }
 
             return user;
